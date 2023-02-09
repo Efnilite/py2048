@@ -54,7 +54,12 @@ def get_next_spaces(xy, direction):
 
 def populate():
     """Populates the starting area with a square with value starting_value."""
-    assign(choice(get_empty_spaces()), starting_value)
+    empty = get_empty_spaces()
+
+    if len(empty) == 0:
+        return
+
+    assign(choice(empty), starting_value)
 
 
 def print_grid():
@@ -91,6 +96,23 @@ def letter_to_direction(letter):
             return None
 
 
+def get_sorted_occupied(preference):
+    """Returns all occupied slots in the specified preferred movement order."""
+    total = []
+
+    # ensure updating happens in the correct direction to avoid goofiness
+    if preference[0] == "x":
+        for x in preference[1]:
+            for y in preference[2]:
+                total.append((x, y))
+    else:
+        for y in preference[2]:
+            for x in preference[1]:
+                total.append((x, y))
+
+    return list(filter(is_occupied, total))
+
+
 def main():
     global grid
     for _ in range(starting_blocks):
@@ -107,7 +129,7 @@ def main():
 
     score = 0
 
-    while len(get_empty_spaces()) > 0:
+    while len(get_empty_spaces()) >= 0:
         print()
         print(f"Score: {score}")
         print()
@@ -122,21 +144,7 @@ def main():
         direction = direction_data[0]
         preference = direction_data[1]
 
-        total = []
-
-        # ensure updating happens in the correct direction to avoid goofiness
-        if preference[0] == "x":
-            for x in preference[1]:
-                for y in preference[2]:
-                    total.append((x, y))
-        else:
-            for y in preference[2]:
-                for x in preference[1]:
-                    total.append((x, y))
-
-        occupied = list(filter(is_occupied, total))
-
-        for xy in occupied:
+        for xy in get_sorted_occupied(preference):
             next_spaces = get_next_spaces(xy, direction)
 
             if len(next_spaces) == 0:
